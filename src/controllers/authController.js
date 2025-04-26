@@ -4,19 +4,23 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
-// Register a new User
+// Register a new user
 const signup = async (req, res) => {
   const { name, email, password } = req.body;
+
   try {
-    //  Check if use already exist
+    // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
+
     if (existingUser) {
-      return res.status(400).json({ message: "User Already exist." });
+      return res.status(400).json({ message: "User already exists." });
     }
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create the user
     const user = await prisma.user.create({
       data: {
@@ -25,30 +29,50 @@ const signup = async (req, res) => {
         password: hashedPassword,
       },
     });
+
     res
       .status(201)
-      .json({ message: "User Created Successfully.", userId: user.id });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Somthing went wrong." });
+      .json({ message: "User created successfully.", userId: user.id });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong." });
   }
 };
-// Login User
+
+// Login user
 const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     // Find user by email
-    const user = prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email },
     });
+
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid credentials." });
     }
-    // Check Password
+
+    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
-      return res.status(400).json({ message: "invalid credemtials" });
+      return res.status(400).json({ message: "Invalid credentials." });
     }
-  } catch (err) {}
+
+    // Create JWT
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.status(200).json({ token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+module.exports = {
+  signup,
+  login,
 };
