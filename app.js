@@ -1,20 +1,19 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const authRoutes = require("./src/routes/authRoutes"); // 👈🏻 اضافه کردن روت‌های لاگین و ثبت نام
+const authRoutes = require("./src/routes/authRoutes");
 
 dotenv.config();
 
 const app = express();
 
 // Middlewares
-app.use(cors()); // 👈🏻 فعال کردن cors که فرانت بتونه به بک وصل بشه
-app.use(express.json()); // 👈🏻 بتونیم دیتا رو به صورت JSON از کاربر دریافت کنیم
-
+app.use(cors());
+app.use(express.json());
 // Routes
-app.use("/api", authRoutes); // 👈🏻 مسیر اصلی API ها (ثبت نام و لاگین و غیره)
+app.use("/api", authRoutes);
 
-// Home Route (اختیاری، تستی)
+// Home Route
 app.get("/", (req, res) => {
   res.send("Welcome to Mini Blog Backend 🚀");
 });
